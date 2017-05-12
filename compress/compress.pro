@@ -26,8 +26,6 @@ DEFINES += QT_DEPRECATED_WARNINGS
 SOURCES += main.cpp\
         mainwindow.cpp
 
-HEADERS  += mainwindow.h \
-    huffmanzip.h \
-    ../build-compress-Desktop_Qt_5_8_0_MinGW_32bit-Release/release/moc_predefs.h
+HEADERS  += mainwindow.h
 
 FORMS    += mainwindow.ui
