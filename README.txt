@@ -1,1 +1,1 @@
-Created By Lin!
+  This Project starts on April,2017,for the group project of c++.Generally,it is developed by Wang、Lin、Jiang、Zhang.The purpose of the project is to design a program aims to compress files with a huffman tree.
