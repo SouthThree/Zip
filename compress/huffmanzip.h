@@ -4,11 +4,11 @@
   08015436
   08015437
   08015438
-  @ Description:this file is the core algorithm header file included by the
-  project, providing the definition of classes, varibles, micros and
+  @ Description:this file is the core algorithm header file included by the 
+  project, providing the definition of classes, varibles, micros and 
   functions.
   @ Compiler: we strongly recommend you to compile this project with GCC g++
-  compiler supporting c++11 standard. We have tested this project with
+  compiler supporting c++11 standard. We have tested this project with 
   GCC g++ 5.4.0 compiler and finished an RC version in current dictionary.
   @ Copyright by authors
  ******************************************************************************/
@@ -19,7 +19,7 @@
 
 
 /******************************************************************************
- * please include all header files here and do not
+ * please include all header files here and do not 
  * attempt to include header files at other place
  *****************************************************************************/
 #include<iostream>
@@ -34,6 +34,7 @@
 #include<map>
 #include<sstream>
 #include<stack>
+#include<queue>
 using namespace std;
 
 /******************************************************************************
@@ -90,30 +91,36 @@ class Methods
 		static void WriteLog(string PATH,string FileName,short threadCount);
 		static void Finalize();
 	private:
-		static void* __ThreadEncodeFile(int,int);
-		static void* __ThreadDecodeFile(void* param);
+		static void* __ThreadEncodeFile(int,int);	
+        static void* __ThreadDecodeFile(int i,int n);
 };
 
 
 map<char,string> temp;
-
+map<string,char> temp_dictionary;
+map<string,string>temp_trueorfalse;
 class global
 {
 	public:
 		static map<char,string> huffmanMap;
 		static string PATH;
-		static string FileName; 
-        static long long codefileLength;
+		static string FileName;
 		static int fileLength;
 		static long long* Freq;
+        static char *Ans;
+        static map<string,char>Dictionary;
+        static map<string,string>trueorfalse;
 };
 
-long long global::codefileLength=0;
+
 map<char,string> global::huffmanMap=std::move(temp);
 string global::PATH="";
 string global::FileName="";
 int global::fileLength=0;
 long long* global::Freq=nullptr;
+char *global::Ans=nullptr;
+map<string,char>global::Dictionary=std::move(temp_dictionary);
+map<string,string>global::trueorfalse=std::move(temp_trueorfalse);
 
 
 /************************************************************************************
@@ -213,7 +220,7 @@ void HuffmanTree::BuildTree()
 	for(int i=0;i<=x;i++)
 	{
 		node=treenodes[i];
-
+		
 		string code;
 		stringstream ss;
 		Node* t;
@@ -233,7 +240,7 @@ void HuffmanTree::BuildTree()
 		global::huffmanMap.emplace(node.chName,code);
 	}
 
-
+	
 }
 
 /************************************************************************************
@@ -241,7 +248,7 @@ void HuffmanTree::BuildTree()
  ***********************************************************************************/
 
 /**
- * @brief EncodeFile		encode a txt file
+ * @brief EncodeFile		encode a txt file 
  *
  * @param PATH				path to the current executable file
  * @param FileName			name of the file to encode
@@ -266,7 +273,7 @@ void Methods::EncodeFile(string PATH,string FileName,short threadCount,void* par
 }
 
 /**
- * @brief DecodeFile		decode a binary file
+ * @brief DecodeFile		decode a binary file 
  *
  * @param PATH				path to the current executable file
  * @param FileName			name of the file to encode
@@ -276,6 +283,44 @@ void Methods::EncodeFile(string PATH,string FileName,short threadCount,void* par
 void Methods::DecodeFile(string PATH,string FileName,short threadCount,void* param)
 {
 	//TODO: edit your function code here
+        std::thread thread[8];
+        short i=0;
+        long long length;
+        string s="";
+        s=PATH+FileName+".log";
+        freopen(s.data(),"r",stdin);
+        int num_thread;
+        cin>>num_thread>>length;
+        global::fileLength=length;
+        string dst=global::PATH;
+        dst+=FileName;
+
+        //build the map:
+        int asc;
+        string code;
+
+        global::Ans=new char[global::fileLength];
+
+        while(cin>>asc>>code)
+        {
+            global::Dictionary[code]=char(asc);
+            global::trueorfalse[code]=code;
+        }
+
+        //
+
+       // cout<<threadCount<<" "<<global::fileLength<<endl;
+        for(i=0;i<num_thread;i++)
+        {
+            thread[i]=std::thread(&__ThreadDecodeFile,i,num_thread);
+            //cout<<"executing thread "<<i<<endl;
+        }
+        for(i=0;i<num_thread;i++)
+        {
+            thread[i].join();
+        }
+        ofstream outfile(dst.data(),ios::binary);
+        outfile.write(global::Ans,global::fileLength);
 }
 
 /**
@@ -296,13 +341,13 @@ void Methods::CountFreq(string PATH,string FileName)
 		++global::fileLength;
 		read.get(c);
 		global::Freq[128+int(c)]++;
-        }
+	}
 	global::fileLength-=2;
 	read.close();
 }
 
 /**
- * @brief BuildTree  establish a temporary huffman tree to gain a map of
+ * @brief BuildTree  establish a temporary huffman tree to gain a map of 
  *					characters and its code
  *
  * @param PATH
@@ -322,7 +367,7 @@ void Methods::BuildTree(string PATH,string FileName)
  */
 void* Methods::__ThreadEncodeFile(int i,int n)
 {
-
+	
 	string src=global::PATH;
 	string dst=global::PATH;
 	src+=global::FileName;
@@ -351,7 +396,6 @@ void* Methods::__ThreadEncodeFile(int i,int n)
 		for(char c: global::huffmanMap[buf])
 		{
 			buffer|=(c-'0')<<(pos--);
-            global::codefileLength++;
 			if(pos==23)
 			{
 				hufcode=buffer>>24;
@@ -376,9 +420,87 @@ void* Methods::__ThreadEncodeFile(int i,int n)
  * @param param					paramenters needed
  *
  */
-void* Methods::__ThreadDecodeFile(void* param)
+void* Methods::__ThreadDecodeFile(int i,int n)
 {
 	//TODO: edit your function code here
+    string src=global::PATH;
+    string log=global::PATH;
+    queue <char> temp1;
+
+    src+=global::FileName;
+    src=src.substr(0,src.length()-4);
+    src+=char('0'+i);
+    src+=".bin";
+
+    log+=global::FileName;
+    log+=".log";
+
+
+
+    /*Build the map*/
+
+
+    ifstream infile(src,ios::binary);
+
+    infile.seekg(0,ios::end);
+    long long length_temp=infile.tellg();
+    infile.seekg(0,ios::beg);
+    char *source=new char[length_temp+1];
+    infile.read(source,length_temp);
+
+
+
+    //cout<<source<<endl;
+    for(int j=0;j<length_temp;j++)
+    {
+        if(((source[j])&0x80)==0x80)temp1.push('1');
+        else temp1.push('0');
+
+        if((source[j]&0x40)==0x40)temp1.push('1');
+        else temp1.push('0');
+
+        if((source[j]&0x20)==0x20)temp1.push('1');
+        else temp1.push('0');
+
+        if((source[j]&0x10)==0x10)temp1.push('1');
+        else temp1.push('0');
+
+        if((source[j]&0x08)==0x08)temp1.push('1');
+        else temp1.push('0');
+
+        if((source[j]&0x04)==0x04)temp1.push('1');
+        else temp1.push('0');
+
+        if((source[j]&0x02)==0x02)temp1.push('1');
+        else temp1.push('0');
+
+        if((source[j]&0x01)==0x01)temp1.push('1');
+        else temp1.push('0');
+
+
+    }
+
+    string s;
+    long long num=0;
+    long long thisthread=global::fileLength/n;
+    if(i<=global::fileLength%n)thisthread++;
+
+
+    for(;num<=thisthread;){
+        s.clear();
+        for(int t=0;t<20;t++)
+        {
+            s+=temp1.front();
+            temp1.pop();
+            if(global::trueorfalse[s]==s){
+                    global::Ans[n*num+i]=global::Dictionary[s];
+                    s.clear();
+                    num++;
+                    break;
+            }
+        }
+    }
+
 }
 
 void Methods::Finalize()
@@ -389,7 +511,6 @@ void Methods::Finalize()
 	global::FileName.erase();
 	global::fileLength=0;
 	global::huffmanMap.clear();
-        global::codefileLength=0;
 }
 
 
@@ -397,8 +518,6 @@ void Methods::WriteLog(string PATH,string FileName,short threadCount)
 {
 	fstream dout(PATH+FileName+".log",ios::out);
 	dout<<threadCount<<' '<<global::fileLength<<endl;
-        dout<<global::codefileLength<<'\n';
-    cout<<endl;
 	for(auto& bar: global::huffmanMap)
 		dout<<int(bar.first)<<' '<<bar.second<<endl;
 }

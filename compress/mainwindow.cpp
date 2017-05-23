@@ -8,7 +8,6 @@ MainWindow::MainWindow(QWidget *parent) :
 {
     ui->setupUi(this);
     Methods::Finalize();
-    threadCount=1;
 }
 
 MainWindow::~MainWindow()
@@ -42,8 +41,9 @@ void MainWindow::on_extract_clicked()
 {
     if(global::FileName!="")
     {
-        Methods::DecodeFile(global::PATH,global::FileName,1);
-        QMessageBox::information(this,"2","3");
+        string logfilename=global::FileName.substr(0,global::FileName.length()-4);
+        Methods::DecodeFile(global::PATH,logfilename,threadCount);
+        QMessageBox::information(this,"Decode File:","Decode File Succeeded!");
     }
     else
         QMessageBox::information(this,"error","no file selected");

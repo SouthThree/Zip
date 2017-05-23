@@ -53,9 +53,9 @@
    <widget class="QPushButton" name="pushButton">
     <property name="geometry">
      <rect>
-      <x>340</x>
+      <x>360</x>
       <y>50</y>
-      <width>61</width>
+      <width>71</width>
       <height>31</height>
      </rect>
     </property>
@@ -81,7 +81,7 @@
      <rect>
       <x>100</x>
       <y>130</y>
-      <width>51</width>
+      <width>81</width>
       <height>31</height>
      </rect>
     </property>
@@ -146,7 +146,7 @@
      <x>0</x>
      <y>0</y>
      <width>455</width>
-     <height>22</height>
+     <height>26</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuICompress">
