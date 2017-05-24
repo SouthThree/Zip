@@ -6,6 +6,7 @@ MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow)
 {
+    threadCount=1;
     ui->setupUi(this);
     Methods::Finalize();
 }
@@ -32,8 +33,8 @@ void MainWindow::on_compress_clicked()
     }
     else
         QMessageBox::information(this,"error","no file selected");
-    Methods::Finalize();
-    ui->lineEdit->setText("");
+        Methods::Finalize();
+        ui->lineEdit->setText("");
 
 }
 

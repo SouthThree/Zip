@@ -321,6 +321,7 @@ void Methods::DecodeFile(string PATH,string FileName,short threadCount,void* par
         }
         ofstream outfile(dst.data(),ios::binary);
         outfile.write(global::Ans,global::fileLength);
+        outfile.close();
 }
 
 /**
@@ -342,7 +343,7 @@ void Methods::CountFreq(string PATH,string FileName)
 		read.get(c);
 		global::Freq[128+int(c)]++;
 	}
-	global::fileLength-=2;
+    global::fileLength-=1;
 	read.close();
 }
 
@@ -402,12 +403,12 @@ void* Methods::__ThreadEncodeFile(int i,int n)
 				charout<<char(uint(hufcode));
 				pos+=8;
 				buffer<<=8;
-				cout<<"thread: "<<i<<endl<<hex<<uint(hufcode)<<endl;
+                //cout<<"thread: "<<i<<endl<<hex<<uint(hufcode)<<endl;
 			}
 		}
 	}
 	hufcode=buffer>>24;
-	cout<<"thread: "<<i<<endl<<hex<<uint(hufcode)<<endl;
+    //cout<<"thread: "<<i<<endl<<hex<<uint(hufcode)<<endl;
 	charout<<(char)hufcode;
 	charin.close();
 	charout.close();
@@ -480,15 +481,15 @@ void* Methods::__ThreadDecodeFile(int i,int n)
 
     }
 
-    string s;
+    string s="";
     long long num=0;
     long long thisthread=global::fileLength/n;
-    if(i<=global::fileLength%n)thisthread++;
+    if(i<global::fileLength%n)thisthread++;
 
 
-    for(;num<=thisthread;){
-        s.clear();
-        for(int t=0;t<20;t++)
+    for(;num<thisthread;){
+        //s.clear();
+        for(int t=0;t<50;t++)
         {
             s+=temp1.front();
             temp1.pop();
@@ -511,6 +512,9 @@ void Methods::Finalize()
 	global::FileName.erase();
 	global::fileLength=0;
 	global::huffmanMap.clear();
+    global::Ans=nullptr;
+    global::Dictionary.clear();
+    global::trueorfalse.clear();
 }
 
 
